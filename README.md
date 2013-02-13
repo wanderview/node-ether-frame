@@ -18,6 +18,7 @@ var ef = EtherFrame.fromBuffer(buf);
 ef.src === new MacAddress('12:34:56:78'); // true
 ef.dst === new MacAddress('98:76:54:32'): // true
 ef.type === EtherFrame.TYPE_IP;           // true
-var payload = ef.payload;
+ef.bytes === 14;                          // true
+var payload = buf.slice(ef.bytes);
 var buf = ef.toBuffer();
 ```
