@@ -1,6 +1,6 @@
 # ether-frame
 
-Node moudle to manipulate ethernet frame headers.
+Node module to manipulate ethernet frame headers.
 
 [![Build Status](https://travis-ci.org/wanderview/node-ether-frame.png)](https://travis-ci.org/wanderview/node-ether-frame)
 
