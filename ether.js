@@ -25,6 +25,8 @@
 
 module.exports = EtherFrame;
 
+var mac = require('mac-address');
+
 EtherFrame.TYPE_IP = 0x0800;
 EtherFrame.TYPE_ARP = 0x0806;
 
@@ -39,12 +41,10 @@ function EtherFrame(opts) {
 
   opts = opts || {};
 
-  // TODO: handle default values
-
-  self.src = opts.src;
-  self.dst = opts.dst;
-  self.type = opts.type;
-  self.bytes = opts.bytes;
+  self.src = opts.src || '00:00:00:00:00:00';
+  self.dst = opts.dst || '00:00:00:00:00:00';
+  self.type = opts.type || EtherFrame.TYPE_IP;
+  self.bytes = opts.bytes || ((mac.LENGTH * 2) + 2);
 
   return self;
 }
@@ -53,13 +53,11 @@ EtherFrame.fromBuffer = function(buf, offset) {
   offset = ~~offset;
   var bytes = 0;
 
-  // TODO: parse MAC addresses
+  var dst = mac.toString(buf, offset + bytes);
+  bytes += mac.LENGTH;
 
-  var dst = buf.slice(offset + bytes, offset + bytes + 6);
-  bytes += 6;
-
-  var src = buf.slice(offset + bytes, offset + bytes + 6);
-  bytes += 6;
+  var src = mac.toString(buf, offset + bytes);
+  bytes += mac.LENGTH;
 
   var type = buf.readUInt16BE(offset + bytes);
   bytes += 2;
@@ -67,15 +65,15 @@ EtherFrame.fromBuffer = function(buf, offset) {
   return new EtherFrame({ dst: dst, src: src, type: type, bytes: bytes });
 };
 
-EtherFrame.prototype.toBuffer = function() {
-  var buf = new Buffer(this.bytes);
-  var offset = 0;
+EtherFrame.prototype.toBuffer = function(buf, offset) {
+  offset = ~~ofset;
+  var buf = (buf instanceof Buffer) ? buf : new Buffer(this.bytes);
 
-  this.dst.copy(buf, offset);
-  offset += this.dst.length;
+  mac.toBuffer(this.dst, buf, offset);
+  offset += mac.LENGTH;
 
-  this.src.copy(buf, offset);
-  offset += this.src.length;
+  mac.toBuffer(this.src, buf, offset);
+  offset += mac.LENGTH;
 
   buf.writeUInt16BE(this.type, offset);
   offset += 2;
