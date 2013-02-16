@@ -25,9 +25,50 @@
 
 var EtherFrame = require('../ether');
 
-module.exports.nop = function(test) {
-  test.expect(1);
-  var ef = new EtherFrame();
-  test.ok(ef instanceof EtherFrame);
-  test.done();
+var path = require('path');
+var pcap = require('pcap-parser');
+
+var FILE = path.join(__dirname, 'data', 'netbios-ns-b-query-winxp.pcap');
+
+module.exports.fromBuffer = function(test) {
+  test.expect(3);
+
+  var parser = pcap.parse(FILE);
+
+  parser.on('packetData', function(payload) {
+    var ether = EtherFrame.fromBuffer(payload);
+    test.equal('00:50:56:e6:2d:02', ether.dst);
+    test.equal('00:0c:29:0d:06:56', ether.src);
+    test.equal(EtherFrame.TYPE_IP, ether.type);
+    test.done();
+  });
+};
+
+module.exports.fromBufferNew = function(test) {
+  test.expect(3);
+
+  var parser = pcap.parse(FILE);
+
+  parser.on('packetData', function(payload) {
+    var ether = new EtherFrame(payload);
+    test.equal('00:50:56:e6:2d:02', ether.dst);
+    test.equal('00:0c:29:0d:06:56', ether.src);
+    test.equal(EtherFrame.TYPE_IP, ether.type);
+    test.done();
+  });
+};
+
+module.exports.toBuffer = function(test) {
+  test.expect(14);
+
+  var parser = pcap.parse(FILE);
+
+  parser.on('packetData', function(payload) {
+    var ether = EtherFrame.fromBuffer(payload);
+    var buf = ether.toBuffer();
+    for (var i = 0, n = buf.length; i < n; ++i) {
+      test.equal(payload.readUInt8(i), buf.readUInt8(i));
+    }
+    test.done();
+  });
 };
