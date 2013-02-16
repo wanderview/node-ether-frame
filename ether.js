@@ -66,7 +66,7 @@ EtherFrame.fromBuffer = function(buf, offset) {
 };
 
 EtherFrame.prototype.toBuffer = function(buf, offset) {
-  offset = ~~ofset;
+  offset = ~~offset;
   var buf = (buf instanceof Buffer) ? buf : new Buffer(this.bytes);
 
   mac.toBuffer(this.dst, buf, offset);
