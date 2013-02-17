@@ -27,8 +27,15 @@ module.exports = EtherFrame;
 
 var mac = require('mac-address');
 
-EtherFrame.TYPE_IP = 0x0800;
-EtherFrame.TYPE_ARP = 0x0806;
+var TYPE_TO_STRING = {
+  0x0800: 'ip',
+  0x0806: 'arp'
+};
+
+var TYPE_FROM_STRING = {
+  ip: 0x0800,
+  arp: 0x0806
+};
 
 function EtherFrame(opts) {
   if (opts instanceof Buffer) {
@@ -41,9 +48,9 @@ function EtherFrame(opts) {
 
   opts = opts || {};
 
-  self.src = opts.src || '00:00:00:00:00:00';
-  self.dst = opts.dst || '00:00:00:00:00:00';
-  self.type = opts.type || EtherFrame.TYPE_IP;
+  self.src = opts.src || mac.ZERO;
+  self.dst = opts.dst || mac.ZERO;
+  self.type = opts.type || 'ip';
   self.bytes = opts.bytes || ((mac.LENGTH * 2) + 2);
 
   return self;
@@ -59,8 +66,13 @@ EtherFrame.fromBuffer = function(buf, offset) {
   var src = mac.toString(buf, offset + bytes);
   bytes += mac.LENGTH;
 
-  var type = buf.readUInt16BE(offset + bytes);
+  var typeCode = buf.readUInt16BE(offset + bytes);
   bytes += 2;
+
+  var type = TYPE_TO_STRING[typeCode];
+  if (!type) {
+    throw(new Error('Unsupported type code [' + typeCode + ']'));
+  }
 
   return new EtherFrame({ dst: dst, src: src, type: type, bytes: bytes });
 };
@@ -75,7 +87,12 @@ EtherFrame.prototype.toBuffer = function(buf, offset) {
   mac.toBuffer(this.src, buf, offset);
   offset += mac.LENGTH;
 
-  buf.writeUInt16BE(this.type, offset);
+  var typeCode = TYPE_FROM_STRING[this.type];
+  if (typeof typeCode !== 'number') {
+    throw(new Error('Unsupported type [' + this.type + ']'));
+  }
+
+  buf.writeUInt16BE(typeCode, offset);
   offset += 2;
 
   return buf;

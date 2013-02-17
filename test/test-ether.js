@@ -39,7 +39,7 @@ module.exports.fromBuffer = function(test) {
     var ether = EtherFrame.fromBuffer(payload);
     test.equal('00:50:56:e6:2d:02', ether.dst);
     test.equal('00:0c:29:0d:06:56', ether.src);
-    test.equal(EtherFrame.TYPE_IP, ether.type);
+    test.equal('ip', ether.type);
     test.done();
   });
 };
@@ -53,7 +53,7 @@ module.exports.fromBufferNew = function(test) {
     var ether = new EtherFrame(payload);
     test.equal('00:50:56:e6:2d:02', ether.dst);
     test.equal('00:0c:29:0d:06:56', ether.src);
-    test.equal(EtherFrame.TYPE_IP, ether.type);
+    test.equal('ip', ether.type);
     test.done();
   });
 };
@@ -71,4 +71,15 @@ module.exports.toBuffer = function(test) {
     }
     test.done();
   });
+};
+
+module.exports.defaults = function(test) {
+  test.expect(3);
+
+  var ether = new EtherFrame();
+  test.equal('00:00:00:00:00:00', ether.dst);
+  test.equal('00:00:00:00:00:00', ether.src);
+  test.equal('ip', ether.type);
+
+  test.done();
 };
