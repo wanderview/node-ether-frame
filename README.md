@@ -14,8 +14,8 @@ simple IP payload without any fanciness like VLAN tagging, etc.
 var EtherFrame = require('ether-frame');
 
 var ef = EtherFrame.fromBuffer(buf);
-ef.src === '12:34:56:78';           // true
-ef.dst === '98:76:54:32':           // true
+ef.src === '12:34:56:78:90:12';     // true
+ef.dst === '98:76:54:32:10:98':     // true
 ef.type === 'ip';                   // true
 ef.bytes === 14;                    // true
 var payload = buf.slice(ef.bytes);
