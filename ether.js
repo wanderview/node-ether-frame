@@ -50,36 +50,57 @@ function EtherFrame(opts) {
 
   self.src = opts.src || mac.ZERO;
   self.dst = opts.dst || mac.ZERO;
-  self.type = opts.type || 'ip';
-  self.bytes = opts.bytes || ((mac.LENGTH * 2) + 2);
+
+  if (opts.type) {
+    self.type = opts.type;
+    self.typeCode = TYPE_FROM_STRING[self.type];
+  } else if (opts.typeCode) {
+    self.typeCode = opts.typeCode;
+    self.type = TYPE_TO_STRING[self.typeCode];
+  } else {
+    self.type = 'ip';
+    self.typeCode = TYPE_FROM_STRING[self.type];
+  }
+
+  if (typeof self.typeCode !== 'number') {
+    throw(new Error('Unsupported type [' + self.type + ']'));
+  }
+
+  self.length = opts.length || 14;
+
+  if (self.length !== 14) {
+    throw new Error('Unsupported ethernet frame length [' + self.length +
+                    ']; must be 14 as only most common cases are implemented.');
+  }
 
   return self;
 }
 
 EtherFrame.fromBuffer = function(buf, offset) {
   offset = ~~offset;
-  var bytes = 0;
+  var length = 0;
 
-  var dst = mac.toString(buf, offset + bytes);
-  bytes += mac.LENGTH;
+  var dst = mac.toString(buf, offset + length);
+  length += mac.LENGTH;
 
-  var src = mac.toString(buf, offset + bytes);
-  bytes += mac.LENGTH;
+  var src = mac.toString(buf, offset + length);
+  length += mac.LENGTH;
 
-  var typeCode = buf.readUInt16BE(offset + bytes);
-  bytes += 2;
+  var typeCode = buf.readUInt16BE(offset + length);
+  length += 2;
 
   var type = TYPE_TO_STRING[typeCode];
   if (!type) {
     throw(new Error('Unsupported type code [' + typeCode + ']'));
   }
 
-  return new EtherFrame({ dst: dst, src: src, type: type, bytes: bytes });
+  return new EtherFrame({ dst: dst, src: src, type: type, typeCode: typeCode,
+                          length: length });
 };
 
 EtherFrame.prototype.toBuffer = function(buf, offset) {
   offset = ~~offset;
-  var buf = (buf instanceof Buffer) ? buf : new Buffer(this.bytes);
+  var buf = (buf instanceof Buffer) ? buf : new Buffer(offset + this.length);
 
   mac.toBuffer(this.dst, buf, offset);
   offset += mac.LENGTH;
@@ -87,12 +108,7 @@ EtherFrame.prototype.toBuffer = function(buf, offset) {
   mac.toBuffer(this.src, buf, offset);
   offset += mac.LENGTH;
 
-  var typeCode = TYPE_FROM_STRING[this.type];
-  if (typeof typeCode !== 'number') {
-    throw(new Error('Unsupported type [' + this.type + ']'));
-  }
-
-  buf.writeUInt16BE(typeCode, offset);
+  buf.writeUInt16BE(this.typeCode, offset);
   offset += 2;
 
   return buf;

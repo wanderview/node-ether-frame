@@ -31,7 +31,7 @@ var pcap = require('pcap-parser');
 var FILE = path.join(__dirname, 'data', 'netbios-ns-b-query-winxp.pcap');
 
 module.exports.fromBuffer = function(test) {
-  test.expect(3);
+  test.expect(5);
 
   var parser = pcap.parse(FILE);
 
@@ -40,12 +40,14 @@ module.exports.fromBuffer = function(test) {
     test.equal('00:50:56:e6:2d:02', ether.dst);
     test.equal('00:0c:29:0d:06:56', ether.src);
     test.equal('ip', ether.type);
+    test.equal(0x0800, ether.typeCode);
+    test.equal(14, ether.length);
     test.done();
   });
 };
 
 module.exports.fromBufferNew = function(test) {
-  test.expect(3);
+  test.expect(5);
 
   var parser = pcap.parse(FILE);
 
@@ -54,6 +56,8 @@ module.exports.fromBufferNew = function(test) {
     test.equal('00:50:56:e6:2d:02', ether.dst);
     test.equal('00:0c:29:0d:06:56', ether.src);
     test.equal('ip', ether.type);
+    test.equal(0x0800, ether.typeCode);
+    test.equal(14, ether.length);
     test.done();
   });
 };
@@ -74,12 +78,14 @@ module.exports.toBuffer = function(test) {
 };
 
 module.exports.defaults = function(test) {
-  test.expect(3);
+  test.expect(5);
 
   var ether = new EtherFrame();
   test.equal('00:00:00:00:00:00', ether.dst);
   test.equal('00:00:00:00:00:00', ether.src);
   test.equal('ip', ether.type);
+  test.equal(0x0800, ether.typeCode);
+  test.equal(14, ether.length);
 
   test.done();
 };
